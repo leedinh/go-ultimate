@@ -39,6 +39,7 @@ func (op *OrderPlacer) placeOrder(orderType string, size int) error {
 		log.Fatal(err)
 	}
 	<-op.deliverch
+	fmt.Printf("placed order on the queue: %s\n", format)
 	return nil
 }
 
@@ -55,28 +56,6 @@ func main() {
 	}
 
 	go func() {
-		consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-			"bootstrap.servers": "localhost:9092",
-			"group.id":          "supersecret",
-			"auto.offset.reset": "smallest"})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = consumer.Subscribe(topic, nil)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for {
-			ev := consumer.Poll(100)
-			switch e := ev.(type) {
-			case *kafka.Message:
-				fmt.Printf("consumed message from the queue: %s\n", string(e.Value))
-			case kafka.Error:
-				fmt.Printf("%% Error: %v\n", e)
-			}
-		}
 
 	}()
 
