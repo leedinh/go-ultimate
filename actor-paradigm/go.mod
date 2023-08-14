@@ -1,4 +1,4 @@
-module github.com/leedinh/actor-paradigm
+module github.com/leedinh/go-ultimate/actor-paradigm
 
 go 1.20
 
