@@ -23,6 +23,10 @@ type ConnAdd struct {
 	cnn net.Conn
 }
 
+type ConnRemove struct {
+	pid *actor.PID
+}
+
 func newSession(cnn net.Conn) actor.Producer {
 	return func() actor.Receiver {
 		return &session{cnn: cnn}
@@ -54,6 +58,9 @@ func (s *session) readLoop(c *actor.Context) {
 		msg := buf[:n]
 		c.Send(c.PID(), msg)
 	}
+
+	// Read loop ended, close connection
+	c.Send(c.Parent(), &ConnRemove{pid: c.PID()})
 }
 
 func newServer(listenAddr string) actor.Producer {
@@ -81,6 +88,9 @@ func (s *server) Receive(c *actor.Context) {
 	case *ConnAdd:
 		log.Println("conn added", msg.pid, msg.cnn.RemoteAddr())
 		s.sessions[msg.pid] = msg.cnn
+	case *ConnRemove:
+		log.Println("conn removed", msg.pid, s.sessions[msg.pid].RemoteAddr())
+		delete(s.sessions, msg.pid)
 	}
 }
 
