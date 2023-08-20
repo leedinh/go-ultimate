@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"sync"
+	"sync/atomic"
 	"time"
 )
 
 type Player struct {
-	mu     sync.RWMutex
-	health int
+	health int32
 }
 
 func NewPlayer() *Player {
@@ -19,15 +18,11 @@ func NewPlayer() *Player {
 }
 
 func (p *Player) GetHealth() int {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-	return p.health
+	return int(atomic.LoadInt32(&p.health))
 }
 
 func (p *Player) GetHit(dmg int) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.health -= dmg
+	atomic.AddInt32(&p.health, int32(-dmg))
 }
 
 func StartUILoop(p *Player) {
